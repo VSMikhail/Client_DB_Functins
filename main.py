@@ -67,7 +67,8 @@ def delete_all_phone_numbers_by_id(conn, client_id: int):
         conn.commit()
 
 
-def update_client_info(conn, client_id: int, name: str = None, last_name: str = None, email: str = None, phones: list = None):
+def update_client_info(conn, client_id: int, name: str = None, last_name: str = None, email: str = None,
+                       phones: list = None):
     with conn.cursor() as cur:
         if name:
             cur.execute("""
@@ -114,20 +115,30 @@ def delete_client(conn, client_id: int):
         conn.commit()
 
 
+def search_client(conn, name: str = None, last_name: str = None, email: str = None, phone: str = None):
+    with conn.cursor() as cur:
+        cur.execute("""
+        SELECT c.client_id, c.name, c.last_name FROM client c
+        JOIN phone_number pn ON c.client_id = pn.client_id 
+        WHERE c.name = %s OR c.last_name = %s OR c.email = %s OR pn.phone_number = %s;
+        """, (name, last_name, email, phone))
+        print(cur.fetchall())
+
+
 with psycopg2.connect(dbname='client_db', user='postgres', password='n41xc76') as conn:
 
     delete_tables(conn)
     create_tables(conn)
-    add_client(conn, 'Vasya', 'Ginsburg', '123455@mail.kz', ['+15','+1563'])
-    add_client(conn, 'Ulya', 'Ginsburg', '123@mail.kz', ['+15','+1563'])
-    add_client(conn, 'Phil', 'Ginsburg', '455@mail.kz', ['+15','+1563'])
-    add_client(conn, 'Sam', 'Ginsburg', '456@mail.kz', ['+15','+1563'])
-    add_client(conn, 'Ivan', 'Ginsburg', '789@mail.kz', ['+15','+156300'])
+    add_client(conn, 'Vasya', 'Ginsburg', '123455@mail.kz', ['+15', '+1563'])
+    add_client(conn, 'Ulya', 'Ginsburg', '123@mail.kz', ['+15', '+1563'])
+    add_client(conn, 'Phil', 'Ginsburg', '455@mail.kz', ['+15', '+1563'])
+    add_client(conn, 'Sam', 'Ginsburg', '456@mail.kz', ['+15', '+1563'])
+    add_client(conn, 'Ivan', 'Ginsburg', '789@mail.kz', ['+15', '+156300'])
     add_phone_number(conn, 1, '+7-904-997-77-00')
     add_phone_number(conn, 2, '+7-904-997-77-01')
     add_phone_number(conn, 3, '+7-904-997-77-02')
     add_phone_number(conn, 5, '+7-904-997-77-03')
-    update_client_info(conn, 3, None, 'Fisieva', "oleg5429@mail.by", ['new3','new4'])
+    update_client_info(conn, 3, None, 'Fisieva', "oleg5429@mail.by", ['new3', 'new4'])
     delete_phone_number(conn, 3, 'n')
     delete_client(conn, 2)
-    # search_client(conn, 'Vasya', None)
+    search_client(conn, 'Vasya', None, None, '+15')
